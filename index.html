@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✨城市性格匹配度测试✨ | 小红书同款</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        // 配置Tailwind自定义主题
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#FF6B8B', // 小红书粉
+                        secondary: '#FFE6EF', // 浅粉
+                        accent: '#FFC2D1', // 腮红粉
+                        light: '#FFF9FB', // 超浅粉
+                        dark: '#333333', // 文字深灰
+                    },
+                    fontFamily: {
+                        cute: ['"Comic Sans MS"', 'Microsoft YaHei', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .text-shadow-sm {
+                text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            }
+            .card-shadow {
+                box-shadow: 0 8px 24px rgba(255, 107, 139, 0.15);
+            }
+            .progress-bar {
+                transition: width 0.5s ease;
+            }
+        }
+    </style>
+</head>
+<body class="bg-light min-h-screen font-cute text-dark">
+    <!-- 页面容器 -->
+    <div class="container mx-auto px-4 py-8 max-w-2xl">
+        <!-- 标题区域 -->
+        <header class="text-center mb-8">
+            <h1 class="text-[clamp(1.8rem,4vw,2.5rem)] font-bold text-primary text-shadow-sm mb-2">
+                ✨你的性格适配哪座城市✨
+            </h1>
+            <p class="text-gray-600 italic">测一测，解锁你的专属城市剧本💖</p>
+        </header>
+
+        <!-- 测试容器 -->
+        <div class="bg-white rounded-2xl card-shadow p-6 mb-8">
+            <!-- 进度条 -->
+            <div class="w-full bg-secondary rounded-full h-3 mb-6">
+                <div id="progress-bar" class="progress-bar bg-primary h-3 rounded-full w-0"></div>
+            </div>
+
+            <!-- 问题区域 -->
+            <div id="question-container" class="mb-8">
+                <div class="text-xl font-bold mb-4 text-primary" id="question-number">问题 1/20</div>
+                <div class="text-lg mb-6" id="question-text">准备好开始测试了吗？点击下方按钮开启你的城市匹配之旅～</div>
+                
+                <!-- 开始按钮 -->
+                <div id="start-button-container" class="text-center">
+                    <button id="start-btn" class="bg-primary hover:bg-primary/90 text-white py-3 px-8 rounded-full transition-all duration-300">
+                        开始测试 <i class="fa fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+
+                <!-- 选项区域 (初始隐藏) -->
+                <div id="options-container" class="grid grid-cols-1 gap-3 hidden">
+                    <!-- 选项会动态生成 -->
+                </div>
+            </div>
+
+            <!-- 导航按钮 -->
+            <div id="nav-buttons" class="flex justify-between hidden">
+                <button id="prev-btn" class="bg-secondary hover:bg-accent text-primary py-2 px-6 rounded-full transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    <i class="fa fa-arrow-left mr-2"></i> 上一题
+                </button>
+                <button id="next-btn" class="bg-primary hover:bg-primary/90 text-white py-2 px-6 rounded-full transition-all duration-300">
+                    下一题 <i class="fa fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- 结果区域 (初始隐藏) -->
+        <div id="result-container" class="bg-white rounded-2xl card-shadow p-8 mb-8 hidden">
+            <div class="text-center mb-6">
+                <div class="inline-block bg-primary/10 rounded-full p-4 mb-4">
+                    <i class="fa fa-map-marker text-4xl text-primary"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-primary mb-2" id="result-city">你的灵魂城市是：上海</h2>
+                <p class="text-lg text-gray-700" id="result-compatibility">匹配度：98%</p>
+            </div>
+            
+            <div class="bg-secondary/50 rounded-xl p-6 mb-6">
+                <h3 class="font-bold text-lg mb-3 text-primary">✨为什么是这座城市？✨</h3>
+                <p id="result-analysis" class="text-gray-700 leading-relaxed">
+                    你的性格如同上海一般，既有着精致优雅的一面，又充满了对新鲜事物的好奇心。你热爱生活，注重细节，既享受都市的繁华便利，又能在快节奏中找到属于自己的小确幸。上海的多元包容和你的开放心态完美契合，在这里你能找到无限的可能性～
+                </p>
+            </div>
+            
+            <div class="text-center">
+                <button id="restart-btn" class="bg-primary hover:bg-primary/90 text-white py-3 px-8 rounded-full transition-all duration-300">
+                    <i class="fa fa-refresh mr-2"></i> 重新测试
+                </button>
+            </div>
+        </div>
+
+        <!-- 页脚 -->
+        <footer class="text-center text-gray-500 text-sm">
+            <p>💌 小红书同款城市性格测试 | 仅供娱乐，开心就好～</p>
+        </footer>
+    </div>
+
+    <script>
+        // 测试题库 - 20个幽默风趣的问题
+        const questions = [
+            {
+                text: "周末躺平首选？",
+                options: [
+                    { text: "宅家追剧吃外卖🍿", value: { 北京: 2, 成都: 4, 上海: 1, 广州: 3, 重庆: 3 } },
+                    { text: "探店打卡拍美照📸", value: { 北京: 1, 成都: 2, 上海: 4, 广州: 3, 重庆: 3 } },
+                    { text: "逛吃逛吃不停歇🍜", value: { 北京: 2, 成都: 4, 上海: 1, 广州: 4, 重庆: 4 } },
+                    { text: "citywalk压马路🚶‍♀️", value: { 北京: 3, 成都: 2, 上海: 3, 广州: 2, 重庆: 2 } }
+                ]
+            },
+            {
+                text: "奶茶甜度选择？",
+                options: [
+                    { text: "全糖超甜🍬", value: { 北京: 1, 成都: 4, 上海: 2, 广州: 3, 重庆: 4 } },
+                    { text: "七分糖刚刚好😋", value: { 北京: 2, 成都: 3, 上海: 4, 广州: 4, 重庆: 3 } },
+                    { text: "三分糖微甜🥰", value: { 北京: 3, 成都: 2, 上海: 4, 广州: 2, 重庆: 2 } },
+                    { text: "无糖养生党🧘‍♀️", value: { 北京: 4, 成都: 1, 上海: 2, 广州: 1, 重庆: 1 } }
+                ]
+            },
+            {
+                text: "上班迟到第一反应？",
+                options: [
+                    { text: "光速化妆狂奔🏃‍♀️", value: { 北京: 4, 成都: 1, 上海: 4, 广州: 3, 重庆: 2 } },
+                    { text: "淡定请假再睡会😴", value: { 北京: 1, 成都: 4, 上海: 1, 广州: 2, 重庆: 4 } },
+                    { text: "边跑边点早餐🥪", value: { 北京: 3, 成都: 2, 上海: 3, 广州: 4, 重庆: 3 } },
+                    { text: "佛系迟到无所谓😜", value: { 北京: 2, 成都: 3, 上海: 2, 广州: 1, 重庆: 1 } }
+                ]
+            },
+            {
+                text: "社交状态？",
+                options: [
+                    { text: "社牛症天花板🐮", value: { 北京: 4, 成都: 2, 上海: 3, 广州: 4, 重庆: 4 } },
+                    { text: "选择性社牛🐴", value: { 北京: 3, 成都: 3, 上海: 4, 广州: 3, 重庆: 3 } },
+                    { text: "社恐本恐🐢", value: { 北京: 2, 成都: 4, 上海: 2, 广州: 2, 重庆: 2 } },
+                    { text: "间歇性想社交🐱", value: { 北京: 1, 成都: 1, 上海: 1, 广州: 1, 重庆: 1 } }
+                ]
+            },
+            {
+                text: "看到网红景点？",
+                options: [
+                    { text: "立刻冲打卡📸", value: { 北京: 2, 成都: 3, 上海: 4, 广州: 3, 重庆: 4 } },
+                    { text: "等热度过了再去😜", value: { 北京: 3, 成都: 2, 上海: 2, 广州: 4, 重庆: 2 } },
+                    { text: "看看照片就满足📱", value: { 北京: 4, 成都: 4, 上海: 1, 广州: 2, 重庆: 1 } },
+                    { text: "人多的地方不去🙅‍♀️", value: { 北京: 1, 成都: 1, 上海: 3, 广州: 1, 重庆: 3 } }
+                ]
+            },
+            {
+                text: "购物偏好？",
+                options: [
+                    { text: "大牌专柜买买买💎", value: { 北京: 3, 成都: 1, 上海: 4, 广州: 2, 重庆: 1 } },
+                    { text: "小众设计师款✨", value: { 北京: 2, 成都: 2, 上海: 4, 广州: 1, 重庆: 2 } },
+                    { text: "平价宝藏单品💸", value: { 北京: 1, 成都: 3, 上海: 2, 广州: 4, 重庆: 4 } },
+                    { text: "批发市场淘货🛍️", value: { 北京: 2, 成都: 4, 上海: 1, 广州: 4, 重庆: 3 } }
+                ]
+            },
+            {
+                text: "吃饭口味？",
+                options: [
+                    { text: "无辣不欢🌶️", value: { 北京: 1, 成都: 4, 上海: 1, 广州: 1, 重庆: 4 } },
+                    { text: "微辣刚刚好🌶️🌶️", value: { 北京: 2, 成都: 4, 上海: 2, 广州: 2, 重庆: 4 } },
+                    { text: "一点点辣🌶️🤏", value: { 北京: 3, 成都: 2, 上海: 3, 广州: 3, 重庆: 2 } },
+                    { text: "完全不吃辣❌", value: { 北京: 4, 成都: 1, 上海: 4, 广州: 4, 重庆: 1 } }
+                ]
+            },
+            {
+                text: "出行方式？",
+                options: [
+                    { text: "地铁特种兵🚇", value: { 北京: 4, 成都: 2, 上海: 4, 广州: 4, 重庆: 2 } },
+                    { text: "打车不走路🚗", value: { 北京: 3, 成都: 3, 上海: 4, 广州: 3, 重庆: 3 } },
+                    { text: "共享单车🚲", value: { 北京: 4, 成都: 4, 上海: 2, 广州: 2, 重庆: 1 } },
+                    { text: "走路消食🚶‍♀️", value: { 北京: 2, 成都: 1, 上海: 1, 广州: 1, 重庆: 4 } }
+                ]
+            },
+            {
+                text: "熬夜程度？",
+                options: [
+                    { text: "修仙党2点前不睡🌙", value: { 北京: 4, 成都: 3, 上海: 4, 广州: 3, 重庆: 4 } },
+                    { text: "12点准时睡觉😴", value: { 北京: 2, 成都: 4, 上海: 2, 广州: 4, 重庆: 2 } },
+                    { text: "10点养生睡眠🛌", value: { 北京: 1, 成都: 2, 上海: 1, 广州: 1, 重庆: 1 } },
+                    { text: "看心情随缘睡😜", value: { 北京: 3, 成都: 1, 上海: 3, 广州: 2, 重庆: 3 } }
+                ]
+            },
+            {
+                text: "拍照风格？",
+                options: [
+                    { text: "氛围感大片📸", value: { 北京: 2, 成都: 3, 上海: 4, 广州: 2, 重庆: 4 } },
+                    { text: "搞怪表情包🤪", value: { 北京: 3, 成都: 4, 上海: 2, 广州: 4, 重庆: 3 } },
+                    { text: "素颜原相机😎", value: { 北京: 4, 成都: 2, 上海: 1, 广州: 3, 重庆: 2 } },
+                    { text: "美颜开到最大💄", value: { 北京: 1, 成都: 1, 上海: 3, 广州: 1, 重庆: 1 } }
+                ]
+            },
+            {
+                text: "遇到烦心事？",
+                options: [
+                    { text: "大吃一顿🍲", value: { 北京: 2, 成都: 4, 上海: 1, 广州: 4, 重庆: 4 } },
+                    { text: "找朋友吐槽🗣️", value: { 北京: 4, 成都: 3, 上海: 3, 广州: 2, 重庆: 3 } },
+                    { text: "独自emo😭", value: { 北京: 1, 成都: 2, 上海: 4, 广州: 1, 重庆: 2 } },
+                    { text: "买买买解压🛍️", value: { 北京: 3, 成都: 1, 上海: 4, 广州: 3, 重庆: 1 } }
+                ]
+            },
+            {
+                text: "工作节奏偏好？",
+                options: [
+                    { text: "卷王本卷💪", value: { 北京: 4, 成都: 1, 上海: 4, 广州: 3, 重庆: 2 } },
+                    { text: "佛系摸鱼🐟", value: { 北京: 1, 成都: 4, 上海: 1, 广州: 2, 重庆: 4 } },
+                    { text: "劳逸结合⏳", value: { 北京: 3, 成都: 3, 上海: 3, 广州: 4, 重庆: 3 } },
+                    { text: "随心所欲😜", value: { 北京: 2, 成都: 2, 上海: 2, 广州: 1, 重庆: 1 } }
+                ]
+            },
+            {
+                text: "旅游偏好？",
+                options: [
+                    { text: "网红城市打卡📸", value: { 北京: 2, 成都: 3, 上海: 4, 广州: 2, 重庆: 4 } },
+                    { text: "小众秘境探索🌿", value: { 北京: 4, 成都: 2, 上海: 2, 广州: 1, 重庆: 2 } },
+                    { text: "美食之旅🍜", value: { 北京: 1, 成都: 4, 上海: 1, 广州: 4, 重庆: 3 } },
+                    { text: "躺平度假🏖️", value: { 北京: 3, 成都: 1, 上海: 3, 广州: 3, 重庆: 1 } }
+                ]
+            },
+            {
+                text: "穿搭风格？",
+                options: [
+                    { text: "简约高级感✨", value: { 北京: 4, 成都: 1, 上海: 4, 广州: 2, 重庆: 2 } },
+                    { text: "甜妹风yyds🎀", value: { 北京: 1, 成都: 3, 上海: 3, 广州: 1, 重庆: 4 } },
+                    { text: "休闲舒适为主😌", value: { 北京: 2, 成都: 4, 上海: 1, 广州: 4, 重庆: 3 } },
+                    { text: "个性辣妹风🌶️", value: { 北京: 3, 成都: 2, 上海: 2, 广州: 3, 重庆: 1 } }
+                ]
+            },
+            {
+                text: "早餐选择？",
+                options: [
+                    { text: "精致brunch☕", value: { 北京: 2, 成都: 1, 上海: 4, 广州: 2, 重庆: 1 } },
+                    { text: "传统中式🥢", value: { 北京: 4, 成都: 3, 上海: 1, 广州: 4, 重庆: 4 } },
+                    { text: "路边摊速食🌯", value: { 北京: 3, 成都: 4, 上海: 2, 广州: 3, 重庆: 3 } },
+                    { text: "不吃早餐😴", value: { 北京: 1, 成都: 2, 上海: 3, 广州: 1, 重庆: 2 } }
+                ]
+            },
+            {
+                text: "面对新事物？",
+                options: [
+                    { text: "立刻尝试🧪", value: { 北京: 4, 成都: 2, 上海: 4, 广州: 3, 重庆: 2 } },
+                    { text: "观望后再说🤔", value: { 北京: 3, 成都: 3, 上海: 3, 广州: 4, 重庆: 3 } },
+                    { text: "拒绝改变🙅‍♀️", value: { 北京: 1, 成都: 4, 上海: 1, 广州: 1, 重庆: 4 } },
+                    { text: "随缘接受😜", value: { 北京: 2, 成都: 1, 上海: 2, 广州: 2, 重庆: 1 } }
+                ]
+            },
+            {
+                text: "KTV必点？",
+                options: [
+                    { text: "经典老歌🎶", value: { 北京: 4, 成都: 2, 上海: 2, 广州: 3, 重庆: 1 } },
+                    { text: "流行新歌🎤", value: { 北京: 2, 成都: 3, 上海: 4, 广州: 2, 重庆: 4 } },
+                    { text: "粤语金曲🇭🇰", value: { 北京: 1, 成都: 1, 上海: 1, 广州: 4, 重庆: 2 } },
+                    { text: "网络神曲🎵", value: { 北京: 3, 成都: 4, 上海: 3, 广州: 1, 重庆: 3 } }
+                ]
+            },
+            {
+                text: "消费观念？",
+                options: [
+                    { text: "该省省该花花💸", value: { 北京: 3, 成都: 2, 上海: 3, 广州: 4, 重庆: 2 } },
+                    { text: "精致穷💰", value: { 北京: 2, 成都: 1, 上海: 4, 广州: 2, 重庆: 1 } },
+                    { text: "存钱第一🤑", value: { 北京: 4, 成都: 3, 上海: 1, 广州: 3, 重庆: 3 } },
+                    { text: "及时行乐🎉", value: { 北京: 1, 成都: 4, 上海: 2, 广州: 1, 重庆: 4 } }
+                ]
+            },
+            {
+                text: "交友标准？",
+                options: [
+                    { text: "三观合最重要🤝", value: { 北京: 4, 成都: 2, 上海: 3, 广州: 2, 重庆: 3 } },
+                    { text: "有趣的灵魂✨", value: { 北京: 2, 成都: 4, 上海: 4, 广州: 4, 重庆: 2 } },
+                    { text: "颜值即正义😍", value: { 北京: 1, 成都: 3, 上海: 2, 广州: 1, 重庆: 4 } },
+                    { text: "聊得来就好😜", value: { 北京: 3, 成都: 1, 上海: 1, 广州: 3, 重庆: 1 } }
+                ]
+            },
+            {
+                text: "理想生活状态？",
+                options: [
+                    { text: "事业成功💼", value: { 北京: 4, 成都: 1, 上海: 4, 广州: 3, 重庆: 2 } },
+                    { text: "摆烂躺平🛋️", value: { 北京: 1, 成都: 4, 上海: 1, 广州: 2, 重庆: 4 } },
+                    { text: "吃喝玩乐🥳", value: { 北京: 2, 成都: 4, 上海: 2, 广州: 4, 重庆: 3 } },
+                    { text: "岁月静好🌿", value: { 北京: 3, 成都: 2, 上海: 3, 广州: 1, 重庆: 1 } }
+                ]
+            }
+        ];
+
+        // 城市分析库
+        const cityAnalyses = {
+            北京: {
+                compatibility: "95%",
+                analysis: "你的性格如同北京一般，大气又有格局，既有北方人的豪爽直率，又有着对生活的认真态度。你不喜欢拐弯抹角，做事干脆利落，既有追求事业的野心，又懂得在忙碌中寻找生活的乐趣。北京的包容和多元，正好能容纳你的多面性格，在这里你可以尽情施展才华，也能找到属于自己的归属感～"
+            },
+            上海: {
+                compatibility: "98%",
+                analysis: "你的性格如同上海一般，既有着精致优雅的一面，又充满了对新鲜事物的好奇心。你热爱生活，注重细节，既享受都市的繁华便利，又能在快节奏中找到属于自己的小确幸。上海的多元包容和你的开放心态完美契合，在这里你能找到无限的可能性，无论是时尚潮流还是生活品质，都能和这座城市同频共振～"
+            },
+            广州: {
+                compatibility: "96%",
+                analysis: "你的性格如同广州一般，务实又接地气，不追求虚头巴脑的东西，只看重实实在在的幸福感。你爱吃会吃，懂得享受生活的简单美好，为人随和不挑剔，既有自己的坚持，又能包容不同的声音。广州的烟火气和你的生活态度高度契合，在这里你可以慢悠悠地享受美食，踏实地过好每一天～"
+            },
+            成都: {
+                compatibility: "97%",
+                analysis: "你的性格如同成都一般，佛系又乐观，懂得在忙碌的生活中找到松弛感。你热爱美食，享受慢生活，不卷不焦虑，主打一个开心最重要。成都的安逸和你的生活哲学完美匹配，在这里你可以喝茶聊天、吃火锅撸串，把日子过得有滋有味，既不辜负美食，也不辜负生活～"
+            },
+            重庆: {
+                compatibility: "94%",
+                analysis: "你的性格如同重庆一般，火辣又直接，热情又仗义，既有江湖气又有温柔的一面。你爱恨分明，敢爱敢恨，对朋友掏心掏肺，对生活充满热情。重庆的热辣和你的性格一拍即合，在这里你可以大口吃火锅，大声笑闹，不用伪装，做最真实的自己～"
+            }
+        };
+
+        // 全局变量
+        let currentQuestionIndex = 0;
+        let selectedAnswers = {};
+        let cityScores = { 北京: 0, 上海: 0, 广州: 0, 成都: 0, 重庆: 0 };
+
+        // DOM元素
+        const progressBar = document.getElementById('progress-bar');
+        const questionNumber = document.getElementById('question-number');
+        const questionText = document.getElementById('question-text');
+        const startButtonContainer = document.getElementById('start-button-container');
+        const optionsContainer = document.getElementById('options-container');
+        const navButtons = document.getElementById('nav-buttons');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const questionContainer = document.getElementById('question-container');
+        const resultContainer = document.getElementById('result-container');
+        const resultCity = document.getElementById('result-city');
+        const resultCompatibility = document.getElementById('result-compatibility');
+        const resultAnalysis = document.getElementById('result-analysis');
+        const startBtn = document.getElementById('start-btn');
+        const restartBtn = document.getElementById('restart-btn');
+
+        // 初始化
+        function init() {
+            // 绑定事件
+            startBtn.addEventListener('click', startTest);
+            prevBtn.addEventListener('click', goToPrevQuestion);
+            nextBtn.addEventListener('click', goToNextQuestion);
+            restartBtn.addEventListener('click', restartTest);
+        }
+
+        // 开始测试
+        function startTest() {
+            startButtonContainer.classList.add('hidden');
+            optionsContainer.classList.remove('hidden');
+            navButtons.classList.remove('hidden');
+            renderQuestion(currentQuestionIndex);
+            updateProgress();
+        }
+
+        // 渲染问题
+        function renderQuestion(index) {
+            const question = questions[index];
+            
+            // 更新问题信息
+            questionNumber.textContent = `问题 ${index + 1}/20`;
+            questionText.textContent = question.text;
+            
+            // 清空选项容器
+            optionsContainer.innerHTML = '';
+            
+            // 生成选项
+            question.options.forEach((option, optIndex) => {
+                const optionElement = document.createElement('div');
+                optionElement.className = `p-4 border-2 rounded-xl cursor-pointer transition-all duration-300 hover:bg-secondary/50 ${selectedAnswers[index] === optIndex ? 'border-primary bg-primary/10' : 'border-gray-200'}`;
+                optionElement.textContent = option.text;
+                
+                // 选项点击事件
+                optionElement.addEventListener('click', () => {
+                    // 记录选择
+                    selectedAnswers[index] = optIndex;
+                    
+                    // 更新选项样式
+                    document.querySelectorAll('#options-container > div').forEach(el => {
+                        el.className = 'p-4 border-2 border-gray-200 rounded-xl cursor-pointer transition-all duration-300 hover:bg-secondary/50';
+                    });
+                    optionElement.className = 'p-4 border-2 border-primary bg-primary/10 rounded-xl cursor-pointer transition-all duration-300';
+                    
+                    // 更新导航按钮状态
+                    updateNavButtons();
+                });
+                
+                optionsContainer.appendChild(optionElement);
+            });
+            
+            // 更新导航按钮状态
+            updateNavButtons();
+        }
+
+        // 更新进度条
+        function updateProgress() {
+            const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        // 更新导航按钮状态
+        function updateNavButtons() {
+            // 上一题按钮
+            prevBtn.disabled = currentQuestionIndex === 0;
+            
+            // 下一题按钮
+            if (currentQuestionIndex === questions.length - 1) {
+                nextBtn.textContent = '查看结果 🎉';
+                // 如果当前是最后一题且已选择答案，启用按钮
+                nextBtn.disabled = !(selectedAnswers[currentQuestionIndex] !== undefined);
+            } else {
+                nextBtn.textContent = '下一题 <i class="fa fa-arrow-right ml-2"></i>';
+                // 如果已选择答案，启用按钮
+                nextBtn.disabled = !(selectedAnswers[currentQuestionIndex] !== undefined);
+            }
+        }
+
+        // 上一题
+        function goToPrevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion(currentQuestionIndex);
+                updateProgress();
+            }
+        }
+
+        // 下一题
+        function goToNextQuestion() {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion(currentQuestionIndex);
+                updateProgress();
+            } else {
+                // 最后一题，计算结果
+                calculateResult();
+                showResult();
+            }
+        }
+
+        // 计算测试结果
+        function calculateResult() {
+            // 重置分数
+            cityScores = { 北京: 0, 上海: 0, 广州: 0, 成都: 0, 重庆: 0 };
+            
+            // 累加分数
+            for (let i = 0; i < questions.length; i++) {
+                const selectedOptIndex = selectedAnswers[i];
+                if (selectedOptIndex !== undefined) {
+                    const optionValues = questions[i].options[selectedOptIndex].value;
+                    // 累加每个城市的分数
+                    Object.keys(cityScores).forEach(city => {
+                        cityScores[city] += optionValues[city];
+                    });
+                }
+            }
+            
+            // 找出最高分的城市
+            let maxScore = 0;
+            let bestCity = '北京';
+            
+            Object.keys(cityScores).forEach(city => {
+                if (cityScores[city] > maxScore) {
+                    maxScore = cityScores[city];
+                    bestCity = city;
+                }
+            });
+            
+            return bestCity;
+        }
+
+        // 显示结果
+        function showResult() {
+            const bestCity = calculateResult();
+            const cityData = cityAnalyses[bestCity];
+            
+            // 更新结果信息
+            resultCity.textContent = `你的灵魂城市是：${bestCity}`;
+            resultCompatibility.textContent = `匹配度：${cityData.compatibility}`;
+            resultAnalysis.textContent = cityData.analysis;
+            
+            // 切换显示区域
+            questionContainer.classList.add('hidden');
+            navButtons.classList.add('hidden');
+            resultContainer.classList.remove('hidden');
+        }
+
+        // 重新测试
+        function restartTest() {
+            // 重置状态
+            currentQuestionIndex = 0;
+            selectedAnswers = {};
+            cityScores = { 北京: 0, 上海: 0, 广州: 0, 成都: 0, 重庆: 0 };
+            
+            // 重置UI
+            progressBar.style.width = '0%';
+            resultContainer.classList.add('hidden');
+            startButtonContainer.classList.remove('hidden');
+            optionsContainer.classList.add('hidden');
+            navButtons.classList.add('hidden');
+            
+            // 重置问题容器
+            questionContainer.classList.remove('hidden');
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
